@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>दिघी cam</title>
+<title>डिजी cam</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Serif+Devanagari:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Serif+Devanagari:wght@600;700&family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#3d3833;
   --ink-soft:#6b6258;
   --ink-faint:#9a8f82;
-  --glass:rgba(234,242,196,.46);
-  --glass-strong:rgba(238,245,205,.74);
-  --glass-border:rgba(226,238,178,.65);
-  --accent:#b98b86;
-  --accent-deep:#8c5f5a;
+  --glass:rgba(224,234,196,.46);
+  --glass-strong:rgba(230,239,206,.76);
+  --glass-border:rgba(205,221,168,.6);
+  --accent:#c1846a;
+  --accent-deep:#93573f;
   --shadow-soft:0 8px 28px rgba(60,45,35,.12);
   --shadow-lift:0 14px 36px rgba(60,45,35,.16);
   --radius-lg:24px;
@@ -41,7 +41,7 @@ body::before{
   content:'';
   position:fixed;
   inset:0;
-  background:linear-gradient(180deg,rgba(238,245,205,.34),rgba(238,245,205,.46) 40%,rgba(238,245,205,.58));
+  background:linear-gradient(180deg,rgba(224,234,196,.32),rgba(224,234,196,.44) 40%,rgba(224,234,196,.56));
   z-index:0;
   pointer-events:none;
 }
@@ -67,15 +67,27 @@ body::before{
   color:var(--ink);
 }
 .header h1 .suffix{
-  font-family:'Manrope',sans-serif;
-  font-size:.5em;
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:.6em;
   font-weight:700;
-  letter-spacing:.03em;
-  margin-left:3px;
+  letter-spacing:.01em;
+  margin-left:4px;
   text-transform:lowercase;
   color:var(--accent-deep);
   vertical-align:middle;
-  opacity:.9;
+  display:inline-block;
+  transform:rotate(-4deg) translateY(-2px);
+  position:relative;
+}
+.header h1 .suffix::after{
+  content:'';
+  position:absolute;
+  left:1px;right:1px;bottom:-3px;
+  height:2px;
+  background:var(--accent);
+  border-radius:2px;
+  opacity:.55;
 }
 .header p{
   font-family:'Manrope',sans-serif;
@@ -244,7 +256,7 @@ input[type=range]::-moz-range-thumb{
 
 <div class="header">
   <div class="header-card">
-    <h1>दिघी<span class="suffix">cam</span></h1>
+    <h1>डिजी<span class="suffix">cam</span></h1>
     <p>shoot · filter · keep</p>
   </div>
 </div>
@@ -490,7 +502,7 @@ function render(){
 document.getElementById('dlBtn').onclick=()=>{
   const a=document.createElement('a');
   a.href=canvas.toDataURL('image/jpeg',.95);
-  a.download='dighi_'+currentFilm.id+'.jpg';
+  a.download='digicam_'+currentFilm.id+'.jpg';
   a.click();
 };
 </script>
