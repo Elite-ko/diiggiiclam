@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>darkroom</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background-color:#e8e0d5;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(180,160,140,.07) 2px,rgba(180,160,140,.07) 4px),
+    repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(180,160,140,.07) 2px,rgba(180,160,140,.07) 4px);
+  background-size:4px 4px;
+  padding:0 0 3rem;
+  color:#3a2e24;
+}
+
+/* header */
+.header{text-align:center;padding:2rem 1rem 1rem}
+.header h1{font-size:28px;font-weight:600;letter-spacing:-.5px;color:#2e2218}
+.header p{font-size:13px;color:#9a8778;margin-top:4px;letter-spacing:.03em}
+
+/* stars deco */
+.star{display:inline-block;font-size:18px;margin:0 4px;opacity:.7}
+
+/* mode toggle */
+.mode-toggle{display:flex;gap:0;margin:1rem auto;width:fit-content;border:1.5px solid #c4b5a5;border-radius:12px;overflow:hidden;background:#d8cec4}
+.mode-btn{padding:10px 22px;font-size:13px;font-weight:500;border:none;background:transparent;cursor:pointer;color:#7a6858;transition:all .15s}
+.mode-btn.active{background:#fff;color:#2e2218;border-radius:10px}
+
+/* camera view */
+#cameraSection{display:none;padding:0 1rem}
+#cameraSection.active{display:block}
+.camera-frame{position:relative;border-radius:20px;overflow:hidden;background:#111;aspect-ratio:3/4;max-width:400px;margin:0 auto;border:3px solid #c4b5a5;box-shadow:0 4px 24px rgba(0,0,0,.15)}
+#liveVideo{width:100%;height:100%;object-fit:cover;display:block}
+.shutter-wrap{text-align:center;margin-top:1.25rem}
+.shutter-btn{width:72px;height:72px;border-radius:50%;background:#fff;border:4px solid #c4b5a5;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.2);transition:transform .1s,box-shadow .1s;display:inline-flex;align-items:center;justify-content:center}
+.shutter-btn:active{transform:scale(.93);box-shadow:0 1px 6px rgba(0,0,0,.15)}
+.shutter-inner{width:52px;height:52px;border-radius:50%;background:#e8e0d5}
+
+/* upload zone */
+#uploadSection{padding:0 1rem}
+.upload-zone{border:2px dashed #c4b5a5;border-radius:20px;padding:2.5rem 1rem;text-align:center;cursor:pointer;background:rgba(255,255,255,.4);backdrop-filter:blur(4px);transition:border-color .15s,background .15s}
+.upload-zone:hover{border-color:#a08878;background:rgba(255,255,255,.55)}
+.cam-icon{font-size:40px;margin-bottom:10px;opacity:.5}
+.upload-zone p{font-size:14px;color:#7a6858;font-weight:500}
+.upload-zone span{font-size:12px;color:#b0a090;margin-top:4px;display:block}
+#fileInput{display:none}
+
+/* workspace */
+#workspace{display:none;padding:0 1rem}
+#workspace.active{display:block}
+
+.preview-card{background:rgba(255,255,255,.5);border:1.5px solid #d4c8bc;border-radius:20px;padding:12px;margin-bottom:1.25rem;backdrop-filter:blur(4px)}
+.preview-wrap{position:relative;border-radius:14px;overflow:hidden;background:#c8bfb5;line-height:0}
+canvas{width:100%;height:auto;display:block;border-radius:14px}
+.film-tag{position:absolute;bottom:10px;left:10px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.75);color:#3a2e24;padding:4px 10px;border-radius:6px;backdrop-filter:blur(4px)}
+
+/* film grid */
+.section-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#9a8778;margin:1rem 0 .6rem;padding:0 .25rem}
+.films{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.film-btn{border:1.5px solid #d4c8bc;border-radius:12px;padding:10px 6px;cursor:pointer;background:rgba(255,255,255,.5);color:#5a4a3a;text-align:center;font-size:11px;font-weight:600;transition:all .12s;line-height:1.3;letter-spacing:.02em}
+.film-btn:active{transform:scale(.97)}
+.film-btn.active{border-color:#3a2e24;background:#fff;color:#2e2218}
+.film-btn .dot{width:22px;height:22px;border-radius:50%;margin:0 auto 6px;border:1.5px solid rgba(0,0,0,.08)}
+
+/* sliders */
+.slider-card{background:rgba(255,255,255,.5);border:1.5px solid #d4c8bc;border-radius:16px;padding:1rem 1rem .75rem;margin-bottom:1rem;backdrop-filter:blur(4px)}
+.slider-row{margin-bottom:.75rem}
+.slider-row:last-child{margin-bottom:0}
+.slider-row label{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:#7a6858;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.slider-row label span{color:#2e2218}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;background:#d4c8bc;border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#3a2e24;cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+
+/* actions */
+.actions{display:flex;gap:10px;margin-bottom:1rem}
+.btn{flex:1;padding:14px;border-radius:14px;border:1.5px solid #c4b5a5;background:rgba(255,255,255,.5);color:#5a4a3a;font-size:14px;font-weight:600;cursor:pointer;transition:all .12s;text-align:center;letter-spacing:.02em;backdrop-filter:blur(4px)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:#3a2e24;color:#f0ebe4;border-color:#3a2e24}
+.btn.primary:active{background:#2a2018}
+
+/* deco stars floating */
+.deco{position:fixed;pointer-events:none;z-index:0;opacity:.35}
+.deco-tl{top:60px;left:16px;font-size:28px;transform:rotate(-15deg)}
+.deco-tr{top:80px;right:20px;font-size:22px;transform:rotate(20deg)}
+.deco-br{bottom:120px;right:18px;font-size:26px;transform:rotate(-10deg)}
+
+/* flash effect */
+.flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:999;transition:opacity .05s}
+.flash.go{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="deco deco-tl">✦</div>
+<div class="deco deco-tr">✶</div>
+<div class="deco deco-br">✦</div>
+<div class="flash" id="flash"></div>
+
+<div class="header">
+  <div><span class="star">✦</span><span class="star">✶</span><span class="star">✦</span></div>
+  <h1>darkroom</h1>
+  <p>shoot · filter · keep</p>
+</div>
+
+<div style="text-align:center">
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btnUpload" onclick="setMode('upload')">📁 upload</button>
+    <button class="mode-btn" id="btnCamera" onclick="setMode('camera')">📷 camera</button>
+  </div>
+</div>
+
+<!-- upload mode -->
+<div id="uploadSection">
+  <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <div class="cam-icon">🎞️</div>
+    <p>tap to pick a photo</p>
+    <span>jpg · png · webp</span>
+  </div>
+  <input type="file" id="fileInput" accept="image/*" capture="environment">
+</div>
+
+<!-- camera mode -->
+<div id="cameraSection">
+  <div class="camera-frame">
+    <video id="liveVideo" autoplay playsinline muted></video>
+  </div>
+  <div class="shutter-wrap">
+    <button class="shutter-btn" id="shutterBtn" onclick="snapPhoto()">
+      <div class="shutter-inner"></div>
+    </button>
+  </div>
+</div>
+
+<!-- workspace shown after photo -->
+<div id="workspace">
+  <div class="preview-card">
+    <div class="preview-wrap">
+      <canvas id="output"></canvas>
+      <div class="film-tag" id="filmTag">original</div>
+    </div>
+  </div>
+
+  <div class="section-label">film stock</div>
+  <div class="films" id="filmGrid"></div>
+
+  <div class="slider-card">
+    <div class="slider-row">
+      <label>grain <span id="grainVal">30</span></label>
+      <input type="range" min="0" max="100" value="30" step="1" id="grainSlider">
+    </div>
+    <div class="slider-row">
+      <label>temp <span id="tempVal">0</span></label>
+      <input type="range" min="-40" max="40" value="0" step="1" id="tempSlider">
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" onclick="resetAll()">retake</button>
+    <button class="btn primary" id="dlBtn">save ↓</button>
+  </div>
+</div>
+
+<script>
+const films=[
+  {id:'original',name:'Original',dot:'#c8bfb5',matrix:null},
+  {id:'kodak_gold',name:'Kodak Gold',dot:'#f2c060',
+    matrix:[1.12,0.04,-0.02,-0.01,1.05,0.02,0.02,0.01,0.88],bias:[8,4,-4],shadow:[10,6,-2],sat:1.08},
+  {id:'portra',name:'Portra 400',dot:'#f0d0b8',
+    matrix:[1.06,0.02,-0.01,0.01,1.03,0.01,-0.02,0.02,0.92],bias:[6,2,2],shadow:[6,3,2],sat:0.94},
+  {id:'fuji',name:'Fuji Superia',dot:'#90c8a0',
+    matrix:[1.0,0.0,-0.03,0.0,1.05,0.02,-0.01,0.03,1.0],bias:[0,4,2],shadow:[0,5,3],sat:1.05},
+  {id:'cinestill',name:'CineStill 800T',dot:'#6080c8',
+    matrix:[0.90,0.04,0.10,0.0,1.0,0.04,0.0,0.0,1.12],bias:[0,2,12],shadow:[0,2,10],sat:1.05},
+  {id:'hp5',name:'Ilford HP5',dot:'#888',bw:true,contrast:1.08},
+  {id:'ektar',name:'Ektar 100',dot:'#e06050',
+    matrix:[1.15,0.02,-0.03,0.0,1.06,0.0,0.01,0.01,0.86],bias:[6,0,-6],shadow:[8,0,-4],sat:1.18},
+];
+
+let img=null,currentFilm=films[0],grainAmt=30,tempAmt=0;
+let offCanvas=null,offCtx=null,stream=null;
+const canvas=document.getElementById('output');
+const ctx=canvas.getContext('2d');
+
+// film buttons
+const filmGrid=document.getElementById('filmGrid');
+films.forEach(f=>{
+  const btn=document.createElement('div');
+  btn.className='film-btn'+(f===currentFilm?' active':'');
+  btn.innerHTML=`<div class="dot" style="background:${f.dot}"></div>${f.name}`;
+  btn.onclick=()=>{
+    document.querySelectorAll('.film-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilm=f;render();
+  };
+  filmGrid.appendChild(btn);
+});
+
+document.getElementById('grainSlider').oninput=function(){
+  grainAmt=+this.value;
+  document.getElementById('grainVal').textContent=this.value;
+  render();
+};
+document.getElementById('tempSlider').oninput=function(){
+  tempAmt=+this.value;
+  document.getElementById('tempVal').textContent=this.value;
+  render();
+};
+
+// mode switching
+function setMode(m){
+  document.getElementById('btnUpload').classList.toggle('active',m==='upload');
+  document.getElementById('btnCamera').classList.toggle('active',m==='camera');
+  document.getElementById('uploadSection').style.display=m==='upload'?'block':'none';
+  if(m==='camera'){
+    document.getElementById('cameraSection').classList.add('active');
+    startCamera();
+  } else {
+    document.getElementById('cameraSection').classList.remove('active');
+    stopCamera();
+  }
+}
+
+function startCamera(){
+  if(stream) return;
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
+    .then(s=>{
+      stream=s;
+      document.getElementById('liveVideo').srcObject=s;
+    })
+    .catch(()=>alert('camera access denied or not available'));
+}
+
+function stopCamera(){
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+}
+
+function snapPhoto(){
+  const flash=document.getElementById('flash');
+  flash.classList.add('go');
+  setTimeout(()=>flash.classList.remove('go'),120);
+  const video=document.getElementById('liveVideo');
+  const tmp=document.createElement('canvas');
+  tmp.width=video.videoWidth;tmp.height=video.videoHeight;
+  tmp.getContext('2d').drawImage(video,0,0);
+  const i=new Image();
+  i.onload=()=>loadImage(i);
+  i.src=tmp.toDataURL('image/jpeg',.95);
+  stopCamera();
+  setMode('upload');
+}
+
+// file upload
+const dropZone=document.getElementById('dropZone');
+dropZone.addEventListener('dragover',e=>{e.preventDefault()});
+dropZone.addEventListener('drop',e=>{e.preventDefault();loadFile(e.dataTransfer.files[0])});
+document.getElementById('fileInput').onchange=e=>loadFile(e.target.files[0]);
+
+function loadFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const i=new Image();
+    i.onload=()=>loadImage(i);
+    i.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadImage(i){
+  img=i;
+  offCanvas=document.createElement('canvas');
+  offCanvas.width=i.width;offCanvas.height=i.height;
+  offCtx=offCanvas.getContext('2d');
+  canvas.width=i.width;canvas.height=i.height;
+  document.getElementById('uploadSection').style.display='none';
+  document.getElementById('workspace').classList.add('active');
+  render();
+}
+
+function resetAll(){
+  img=null;
+  document.getElementById('workspace').classList.remove('active');
+  document.getElementById('uploadSection').style.display='block';
+  document.getElementById('fileInput').value='';
+  document.getElementById('grainSlider').value=30;
+  document.getElementById('tempSlider').value=0;
+  grainAmt=30;tempAmt=0;
+  document.getElementById('grainVal').textContent=30;
+  document.getElementById('tempVal').textContent=0;
+  currentFilm=films[0];
+  document.querySelectorAll('.film-btn').forEach((b,i)=>{b.classList.toggle('active',i===0)});
+}
+
+function clamp(v){return Math.max(0,Math.min(255,Math.round(v)))}
+
+function render(){
+  if(!img)return;
+  offCtx.drawImage(img,0,0);
+  const data=offCtx.getImageData(0,0,offCanvas.width,offCanvas.height);
+  const d=data.data;
+  const f=currentFilm;
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i],g=d[i+1],b=d[i+2];
+    if(tempAmt!==0){r=clamp(r+tempAmt*1.5);b=clamp(b-tempAmt*1.5);g=clamp(g+tempAmt*0.3);}
+    if(f.bw){
+      let lum=0.299*r+0.587*g+0.114*b;
+      if(f.contrast)lum=clamp((lum-128)*f.contrast+128);
+      r=g=b=clamp(lum);
+    } else if(f.matrix){
+      const m=f.matrix;
+      let nr=m[0]*r+m[1]*g+m[2]*b;
+      let ng=m[3]*r+m[4]*g+m[5]*b;
+      let nb=m[6]*r+m[7]*g+m[8]*b;
+      if(f.bias){nr+=f.bias[0];ng+=f.bias[1];nb+=f.bias[2];}
+      if(f.shadow){const lum=(r+g+b)/765,sf=1-lum;nr+=f.shadow[0]*sf*.4;ng+=f.shadow[1]*sf*.4;nb+=f.shadow[2]*sf*.4;}
+      r=clamp(nr);g=clamp(ng);b=clamp(nb);
+      if(f.sat&&f.sat!==1){const lum=0.299*r+0.587*g+0.114*b;r=clamp(lum+(r-lum)*f.sat);g=clamp(lum+(g-lum)*f.sat);b=clamp(lum+(b-lum)*f.sat);}
+    }
+    if(grainAmt>0){const n=(Math.random()-.5)*grainAmt*.7;r=clamp(r+n);g=clamp(g+n*.95);b=clamp(b+n);}
+    d[i]=r;d[i+1]=g;d[i+2]=b;
+  }
+  ctx.putImageData(data,0,0);
+  document.getElementById('filmTag').textContent=f.id==='original'?'original':f.name;
+}
+
+document.getElementById('dlBtn').onclick=()=>{
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/jpeg',.95);
+  a.download='darkroom_'+currentFilm.id+'.jpg';
+  a.click();
+};
+</script>
+</body>
+</html>
